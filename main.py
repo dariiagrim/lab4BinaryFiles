@@ -8,6 +8,12 @@ class Pixel(object):
         self.g = g
         self.b = b
 
+    def __mul__(self, other):
+        return Pixel(self.r * other, self.g * other, self.b * other)
+
+    def __add__(self, other):
+        return Pixel(self.r + other.r, self.g + other.g, self.b + other.b)
+
     def __str__(self):
         return f"red: {self.r}, green: {self.g}, blue: {self.b}"
 
@@ -18,6 +24,25 @@ class Image(object):
         self.height = 0
         self.pixels = []
         self._read(file_name)
+
+    def _interpolate(self, pX, pY):
+        x1 = int(pX)
+        y1 = int(pY)
+        x2 = min(x1 + 1, self.width - 1)
+        y2 = min(y1 + 1, self.height - 1)
+
+        lx = pX - x1
+        ly = pY - y1
+
+        bl = self.pixels[x1][y2]
+        br = self.pixels[x2][y2]
+        tl = self.pixels[x1][y1]
+        tr = self.pixels[x2][y1]
+
+        r1 = bl * lx + br * (1. - lx)
+        r2 = tl * lx + tr * (1. - lx)
+
+        return r1 * ly + r2 * (1. - ly)
 
     def _read(self, file_name):
         f = open(file_name, 'rb')
