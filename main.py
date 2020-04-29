@@ -19,11 +19,10 @@ class Pixel(object):
 
 
 class Image(object):
-    def __init__(self, file_name):
+    def __init__(self):
         self.width = 0
         self.height = 0
         self.pixels = []
-        self._read(file_name)
 
     def _interpolate(self, pX, pY):
         x1 = int(pX)
@@ -42,9 +41,10 @@ class Image(object):
         r1 = bl * lx + br * (1. - lx)
         r2 = tl * lx + tr * (1. - lx)
 
-        return r1 * ly + r2 * (1. - ly)
+        pixel = r1 * ly + r2 * (1. - ly)
+        return Pixel(int(pixel.r), int(pixel.g), int(pixel.b))
 
-    def _read(self, file_name):
+    def read(self, file_name):
         f = open(file_name, 'rb')
         f.seek(2)
         file_size = struct.unpack('<L', f.read(4))[0]
@@ -91,8 +91,23 @@ class Image(object):
         f.write(struct.pack("<L", file_size))
         f.close()
 
+    def get_scaled(self, scale):
+        scaled_width = int(self.width * scale)
+        scaled_height = int(self.height * scale)
+        scaled_image = Image()
+        scaled_image.width = scaled_width
+        scaled_image.height = scaled_height
+        scaled_image.pixels = [[None for _ in range(scaled_width)] for _ in range(scaled_height)]
+        for i in range(scaled_height):
+            for j in range(scaled_width):
+                scaled_image.pixels[i][j] = self._interpolate(j * self.width / scaled_width,
+                                                              i * self.height / scaled_height)
+        return scaled_image
+
 
 if __name__ == "__main__":
-    image = Image(sys.argv[1])
-    image.write(sys.argv[2])
+    image = Image()
+    image.read(sys.argv[1])
+    image2 = image.get_scaled(float(sys.argv[3]))
+    image2.write(sys.argv[2])
 
