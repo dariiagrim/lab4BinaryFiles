@@ -33,15 +33,15 @@ class Image(object):
         lx = pX - x1
         ly = pY - y1
 
-        bl = self.pixels[x1][y2]
-        br = self.pixels[x2][y2]
-        tl = self.pixels[x1][y1]
-        tr = self.pixels[x2][y1]
+        bl = self.pixels[y1][x1]
+        br = self.pixels[y1][x2]
+        tl = self.pixels[y2][x1]
+        tr = self.pixels[y2][x2]
 
-        r1 = bl * lx + br * (1. - lx)
-        r2 = tl * lx + tr * (1. - lx)
+        r1 = br * lx + bl * (1. - lx)
+        r2 = tr * lx + tl * (1. - lx)
 
-        pixel = r1 * ly + r2 * (1. - ly)
+        pixel = r2 * ly + r1 * (1. - ly)
         return Pixel(int(pixel.r), int(pixel.g), int(pixel.b))
 
     def read(self, file_name):
@@ -62,7 +62,7 @@ class Image(object):
             self.pixels[i][j].b = b
             j += 1
             if j >= self.width:
-                n = 4 - ((self.width * 3) % 4)
+                n = (4 - ((self.width * 3) % 4)) % 4
                 f.read(n)
                 t = f.tell()
                 i += 1
@@ -84,7 +84,7 @@ class Image(object):
         for row in self.pixels:
             for pixel in row:
                 f.write(struct.pack("<BBB", pixel.r, pixel.g, pixel.b))
-            for _ in range(4 - ((self.width * 3) % 4)):
+            for _ in range((4 - ((self.width * 3) % 4)) % 4):
                 f.write(struct.pack("<B", 0))
         file_size = f.tell()
         f.seek(pos)
