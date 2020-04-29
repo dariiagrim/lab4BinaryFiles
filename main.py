@@ -1,4 +1,5 @@
 import struct
+import sys
 
 
 class Pixel(object):
@@ -43,7 +44,30 @@ class Image(object):
                 j = 0
         f.close()
 
+    def write(self, file_name):
+        f = open(file_name, "wb")
+        f.write(struct.pack("<BB", ord("B"), ord("M")))
+        pos = f.tell()
+        f.write(struct.pack("<L", 0))
+        f.write(struct.pack("<L", 0))
+        f.write(struct.pack("<L", 54))
+        f.write(struct.pack("<L", 40))
+        f.write(struct.pack("<LL", self.width, self.height))
+        f.write(struct.pack("<H", 1))
+        f.write(struct.pack("<H", 24))
+        f.write(struct.pack("<LLLLLL", 0, 0, 0, 0, 0, 0))
+        for row in self.pixels:
+            for pixel in row:
+                f.write(struct.pack("<BBB", pixel.r, pixel.g, pixel.b))
+            for _ in range(4 - ((self.width * 3) % 4)):
+                f.write(struct.pack("<B", 0))
+        file_size = f.tell()
+        f.seek(pos)
+        f.write(struct.pack("<L", file_size))
+        f.close()
 
-image = Image('bmp.bmp')
-for i in image.pixels:
-    print(*i)
+
+if __name__ == "__main__":
+    image = Image(sys.argv[1])
+    image.write(sys.argv[2])
+
